@@ -35,6 +35,11 @@ for cmd in python3 systemctl modprobe ip; do
   require_cmd "$cmd"
 done
 
+USE_NETWORKMANAGER=0
+if systemctl -q is-active NetworkManager || systemctl -q is-enabled NetworkManager >/dev/null 2>&1; then
+  USE_NETWORKMANAGER=1
+fi
+
 log "Backing up boot files"
 backup_file "$BOOTCFG"
 backup_file "$CMDLINE"
@@ -117,7 +122,9 @@ ln -sfn configs/c.1 os_desc/c.1
 echo "$UDC" > UDC
 
 ip link set usb0 up
-ip address replace 10.99.99.1/24 dev usb0
+if ! systemctl -q is-active NetworkManager; then
+  ip address replace 10.99.99.1/24 dev usb0
+fi
 SH
 chmod 755 /usr/local/sbin/usb-rndis-gadget
 
@@ -170,6 +177,28 @@ UNIT
 
 systemctl daemon-reload
 systemctl enable usb-rndis-gadget.service
+
+if [[ "$USE_NETWORKMANAGER" -eq 1 ]]; then
+  log "Installing NetworkManager profile for usb0"
+  install -d -m 700 /etc/NetworkManager/system-connections
+  cat > /etc/NetworkManager/system-connections/usb-rndis-gadget.nmconnection <<'EOF'
+[connection]
+id=usb-rndis-gadget
+type=ethernet
+interface-name=usb0
+autoconnect=true
+
+[ipv4]
+method=manual
+address1=10.99.99.1/24
+never-default=true
+
+[ipv6]
+method=ignore
+EOF
+  chmod 600 /etc/NetworkManager/system-connections/usb-rndis-gadget.nmconnection
+  systemctl reload NetworkManager 2>/dev/null || true
+fi
 
 log "Done. Reboot required."
 log "After reboot, plug the Pi into the data/OTG USB port and it will expose usb0 as 10.99.99.1/24 with no gateway or DNS."

@@ -26,7 +26,9 @@ Important:
 - enables `dtoverlay=dwc2`
 - sets boot module loading to `modules-load=dwc2`
 - installs a configfs-based RNDIS gadget service
-- hardcodes `usb0` to `10.99.99.1/24`
+- configures `usb0` as `10.99.99.1/24`
+- uses a dedicated NetworkManager profile when NetworkManager is present
+- otherwise falls back to direct `ip` configuration
 - binds the gadget at boot with a systemd service
 
 ## Notes
