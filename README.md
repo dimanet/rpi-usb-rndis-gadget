@@ -31,6 +31,26 @@ Important:
 - otherwise falls back to direct `ip` configuration
 - binds the gadget at boot with a systemd service
 
+## Troubleshooting
+
+### `raspi-config` Wireless LAN fails on NetworkManager
+
+On some recent Raspberry Pi OS / Debian 13 images, `raspi-config` may fail in **System Options → Wireless LAN** with:
+
+```
+Error: 802-11-wireless-security.key-mgmt: property is missing.
+```
+
+This is a `raspi-config` + `nmcli` bug, not a failure of the USB gadget setup itself.
+
+A helper script is included to patch `raspi-config` locally so it updates the existing NetworkManager Wi-Fi profile instead of using the broken `nmcli device wifi connect ...` path:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dimanet/rpi-usb-rndis-gadget/main/fix-raspi-config-networkmanager-wifi.sh | sudo bash
+```
+
+The script makes a backup at `/usr/bin/raspi-config.bak-networkmanager-wifi` before patching.
+
 ## Notes
 
 This is intended for Pi models that support USB device/gadget mode, such as the Pi Zero 2 W.
