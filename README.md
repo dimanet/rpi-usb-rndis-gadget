@@ -30,6 +30,7 @@ Important:
 - uses a dedicated NetworkManager profile when NetworkManager is present
 - otherwise falls back to direct `ip` configuration
 - binds the gadget at boot with a systemd service
+- patches `raspi-config` on NetworkManager systems so **System Options → Wireless LAN** keeps working
 
 ## Troubleshooting
 
@@ -43,13 +44,15 @@ Error: 802-11-wireless-security.key-mgmt: property is missing.
 
 This is a `raspi-config` + `nmcli` bug, not a failure of the USB gadget setup itself.
 
-A helper script is included to patch `raspi-config` locally so it updates the existing NetworkManager Wi-Fi profile instead of using the broken `nmcli device wifi connect ...` path:
+The main installer now patches `raspi-config` automatically on NetworkManager-based systems, so the normal one-line install handles it too.
+
+A standalone patch script is still available if you need to repair an already-installed system without rerunning the whole installer:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/dimanet/rpi-usb-rndis-gadget/main/fix-raspi-config-networkmanager-wifi.sh | sudo bash
 ```
 
-The script makes a backup at `/usr/bin/raspi-config.bak-networkmanager-wifi` before patching.
+Both approaches make a backup at `/usr/bin/raspi-config.bak-networkmanager-wifi` before patching.
 
 ## Notes
 
