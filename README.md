@@ -4,7 +4,7 @@ One-shot installer for a Raspberry Pi USB gadget network interface aimed at Wind
 
 It configures:
 - USB RNDIS gadget mode
-- `usb0`
+- `usb0` via NetworkManager when NetworkManager is present
 - fixed IP `10.99.99.1/24`
 - no gateway
 - no DNS
@@ -27,10 +27,10 @@ Important:
 - sets boot module loading to `modules-load=dwc2`
 - installs a configfs-based RNDIS gadget service
 - configures `usb0` as `10.99.99.1/24`
-- uses a dedicated NetworkManager profile when NetworkManager is present
-- otherwise falls back to direct `ip` configuration
-- binds the gadget at boot with a systemd service
+- uses a dedicated NetworkManager profile for `usb0` when NetworkManager is present
 - patches `raspi-config` on NetworkManager systems so **System Options → Wireless LAN** keeps working
+- falls back to direct `ip` configuration only on non-NetworkManager systems
+- binds the gadget at boot with a systemd service
 
 ## Troubleshooting
 
@@ -44,15 +44,9 @@ Error: 802-11-wireless-security.key-mgmt: property is missing.
 
 This is a `raspi-config` + `nmcli` bug, not a failure of the USB gadget setup itself.
 
-The main installer now patches `raspi-config` automatically on NetworkManager-based systems, so the normal one-line install handles it too.
+The main installer patches `raspi-config` automatically on NetworkManager-based systems, so the normal one-line install handles it.
 
-A standalone patch script is still available if you need to repair an already-installed system without rerunning the whole installer:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/dimanet/rpi-usb-rndis-gadget/main/fix-raspi-config-networkmanager-wifi.sh | sudo bash
-```
-
-Both approaches make a backup at `/usr/bin/raspi-config.bak-networkmanager-wifi` before patching.
+A backup is kept at `/usr/bin/raspi-config.bak-networkmanager-wifi` before patching.
 
 ## Notes
 
